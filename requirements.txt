@@ -3,6 +3,7 @@ numpy
 matplotlib
 ipython
 ipdb
+joblib
 tensorflow
 torch
 torchvision
