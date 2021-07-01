@@ -1,0 +1,9 @@
+pandas
+numpy
+matplotlib
+ipython
+ipdb
+tensorflow
+torch
+torchvision
+torchaudio
