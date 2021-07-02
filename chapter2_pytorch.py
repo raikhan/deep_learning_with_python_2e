@@ -10,40 +10,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-# reusing the batch generator from chapter2.py
-class BatchGenerator:
-    def __init__(self, images, labels, batch_size=128, randomize=False):
-        self.index = 0
-        self.images = images
-        self.labels = labels
-        self.batch_size = batch_size
-
-        if randomize:
-            print("Randomizing the data order")
-            i = np.arange(len(self.labels))
-            np.random.shuffle(i)
-            self.images = self.images[i]
-            self.labels = self.labels[i]
-
-    def next(self):
-
-        # ran across all examples
-        if self.index >= self.labels.size:
-            return None
-
-        # last step will be smaller than the requested batch size
-        if self.index + self.batch_size > self.labels.size:
-            batch_size = self.labels.size - self.index
-        else:
-            batch_size = self.batch_size
-
-        images = self.images[self.index : self.index + batch_size]
-        labels = self.labels[self.index : self.index + batch_size]
-
-        self.index += batch_size
-
-        return images, labels
+from torch.utils.data import DataLoader, TensorDataset
 
 
 data = joblib.load("mnist_keras_data.joblib")
@@ -58,6 +25,12 @@ train_images = train_images.reshape((60000, 28 * 28))
 train_images = train_images.astype("float32") / 255
 test_images = test_images.reshape((10000, 28 * 28))
 test_images = test_images.astype("float32") / 255
+
+
+# Create TensorDataset for training
+train_ds = TensorDataset(
+    torch.from_numpy(train_images), torch.from_numpy(train_labels.astype(np.int64))
+)
 
 
 class MyLinear(nn.Module):
@@ -99,15 +72,12 @@ n_epochs = 10
 # training loop
 for epoch in range(n_epochs):
     print(f"{epoch=}")
-    batch_generator = BatchGenerator(
-        train_images, train_labels, batch_size=128, randomize=False
-    )
-    batch_counter = 0
-    while batch := batch_generator.next():
 
-        # prepare data
-        pt_images = torch.from_numpy(batch[0])
-        pt_labels = torch.from_numpy(batch[1].astype("int64"))
+    # use torch DataLoader for batching
+    train_dl = DataLoader(train_ds, batch_size=128)
+
+    batch_counter = 0
+    for pt_images, pt_labels in train_dl:
 
         # compute loss and do backprop to get gradients
         pred = net(pt_images)
