@@ -3,6 +3,7 @@
 # Based on 60 min intro to PyTorch:
 # https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html
 #
+import math
 import joblib
 import numpy as np
 
@@ -59,12 +60,29 @@ test_images = test_images.reshape((10000, 28 * 28))
 test_images = test_images.astype("float32") / 255
 
 
+class MyLinear(nn.Module):
+    def __init__(self, input_len, output_len):
+        super().__init__()
+
+        # initialize the parameters
+        self.weights = nn.Parameter(
+            torch.randn(input_len, output_len) / math.sqrt(input_len)
+        )  # Xavier initialization
+        self.bias = nn.Parameter(torch.zeros(output_len))
+
+    def forward(self, xb):
+        return xb @ self.weights + self.bias
+
+
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
 
-        self.fc1 = nn.Linear(28 * 28, 512)
-        self.fc2 = nn.Linear(512, 10)
+        # self.fc1 = nn.Linear(28 * 28, 512)
+        # self.fc2 = nn.Linear(512, 10)
+
+        self.fc1 = MyLinear(28 * 28, 512)
+        self.fc2 = MyLinear(512, 10)
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
