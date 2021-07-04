@@ -1,25 +1,14 @@
 import joblib
 import numpy as np
-from tensorflow.keras.datasets import imdb
+from numpy.core.numeric import _ones_like_dispatcher
+from tensorflow.keras.datasets import imdb, reuters
+from tensorflow.keras.utils import to_categorical
 
 #
 # Parameters
 #
 n_words = 10000
 
-# load the IMDB data, limiting the dictionary to top 10k most common words
-(X_train, y_train), (X_test, y_test) = imdb.load_data(num_words=n_words)
-
-# # read the text by getting the vocabulary mapping
-# word_index = imdb.get_word_index()
-
-# # ID to word, defining the special characters 0,1 and 2
-# id_to_word = {v + 3: k for k, v in word_index.items()}
-# id_to_word[0] = "PADDING"
-# id_to_word[1] = "START"
-# id_to_word[2] = "UNKNOWN"
-# review = " ".join([id_to_word.get(i, "?") for i in X_train[1234]])
-# print(review)
 
 #
 # Prepare data for model
@@ -34,10 +23,37 @@ def multihot_encoding(sequences, dimension=n_words):
     return res
 
 
-X_train = multihot_encoding(X_train)
-X_test = multihot_encoding(X_test)
-y_train = y_train.astype("float32")
-y_test = y_test.astype("float32")
+def prep_classification_data(fname, X_train, y_train, X_test, y_test, one_hot=False):
+    """Clean up data for classification models in chapter 4"""
 
-data = ((X_train, y_train), (X_test, y_test))
-joblib.dump(data, "imdb_ml_data.joblib")
+    X_train = multihot_encoding(X_train)
+    X_test = multihot_encoding(X_test)
+    y_train = y_train.astype("float32")
+    y_test = y_test.astype("float32")
+
+    if one_hot:
+        y_train = to_categorical(y_train)
+        y_test = to_categorical(y_test)
+
+    data = ((X_train, y_train), (X_test, y_test))
+    joblib.dump(data, fname)
+
+
+#
+# 1) IMDB - binary classification
+#
+
+# load the IMDB data, limiting the dictionary to top 10k most common words
+(X_train, y_train), (X_test, y_test) = imdb.load_data(num_words=n_words)
+prep_classification_data("imdb_ml_data.joblib", X_train, y_train, X_test, y_test, False)
+
+
+#
+# 2) Reuters - multiclass classification
+#
+
+# load the IMDB data, limiting the dictionary to top 10k most common words
+(X_train, y_train), (X_test, y_test) = reuters.load_data(num_words=n_words)
+prep_classification_data(
+    "reuters_ml_data.joblib", X_train, y_train, X_test, y_test, True
+)
