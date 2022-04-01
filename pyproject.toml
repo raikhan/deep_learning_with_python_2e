@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "deep_learning_with_python_2e"
+version = "0.1.0"
+description = ""
+authors = ["Milan Raicevic <raikhan@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.11"
+pandas = "^1.4.1"
+numpy = "^1.22.3"
+matplotlib = "^3.5.1"
+joblib = "^1.1.0"
+tensorflow = "^2.8.0"
+torch = "^1.11.0"
+torchvision = "^0.12.0"
+torchaudio = "^0.11.0"
+
+[tool.poetry.dev-dependencies]
+ipdb = "^0.13.9"
+ipython = "^8.2.0"
+black = "^22.3.0"
+flake8 = "^4.0.1"
+flakehell = "^0.9.0"
+isort = "^5.10.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
