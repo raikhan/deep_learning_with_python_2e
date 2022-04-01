@@ -20,6 +20,8 @@ torch = "^1.11.0"
 torchvision = "^0.12.0"
 torchaudio = "^0.11.0"
 torchtyping = "^0.1.4"
+tensor-annotations = "^1.0.2"
+tensor-annotations-tensorflow-stubs = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
 ipdb = "^0.13.9"
