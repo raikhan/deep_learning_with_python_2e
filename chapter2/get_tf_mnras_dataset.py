@@ -13,5 +13,5 @@ data = {
     "labels": {"train": train_labels, "test": test_labels},
 }
 
-joblib.dump(data, "data/mnras_keras_data.joblib")
+joblib.dump(data, "data/mnist_keras_data.joblib")
 print("Done")
