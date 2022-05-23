@@ -1,3 +1,4 @@
 /pyrightconfig.json
 */__pycache__/
 /mnras_keras_data.joblib
+/data/*.joblib
