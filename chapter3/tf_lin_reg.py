@@ -3,6 +3,7 @@
 #
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
@@ -99,3 +100,17 @@ plt.plot(x, y, "-r")
 plt.scatter(test_inputs[:, 0], test_inputs[:, 1], c=preds[:, 0])
 plt.title("Predictions on test data set and model line")
 plt.show()
+
+
+#
+# Now I will do the same model using Keras API
+#
+model = keras.Sequential([keras.layers.Dense(1)])
+model.compile(optimizer="rmsprop", loss="mean_squared_error", metrics=["accuracy"])
+
+hist = model.fit(train_inputs, train_targets, epochs=5, batch_size=128, shuffle=False)
+pred = model.predict(test_inputs)
+acc = ((pred > 0) == test_targets).mean()
+print(
+    f"Keras accuracy: {acc:.4f}"
+)  # WHAT IS HAPPENING??? VERY DIFFERENT RESULTS BETWEEN RUNS
