@@ -23,6 +23,7 @@ tensor-annotations = "^1.0.2"
 tensor-annotations-tensorflow-stubs = "^1.0.0"
 h5py = "^3.6.0"
 tensorflow-macos = "^2.9.0"
+scikit-learn = "^1.1.1"
 
 [tool.poetry.dev-dependencies]
 ipdb = "^0.13.9"
