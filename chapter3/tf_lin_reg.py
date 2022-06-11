@@ -105,12 +105,14 @@ plt.show()
 #
 # Now I will do the same model using Keras API
 #
-model = keras.Sequential([keras.layers.Dense(1)])
+model = keras.Sequential([keras.layers.Dense(1, activation="sigmoid")])
 model.compile(optimizer="rmsprop", loss="mean_squared_error", metrics=["accuracy"])
 
-hist = model.fit(train_inputs, train_targets, epochs=5, batch_size=128, shuffle=False)
+# NOTE Because I didn't set the learning rate, the default value is to low to learn quickly
+# That's why I need a lot of epochs
+hist = model.fit(train_inputs, train_targets, epochs=300, batch_size=128, shuffle=False)
 pred = model.predict(test_inputs)
-acc = ((pred > 0) == test_targets).mean()
+acc = ((pred > 0.5) == test_targets).mean()
 print(
     f"Keras accuracy: {acc:.4f}"
 )  # WHAT IS HAPPENING??? VERY DIFFERENT RESULTS BETWEEN RUNS
