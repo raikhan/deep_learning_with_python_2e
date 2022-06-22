@@ -1,6 +1,5 @@
+import matplotlib.pyplot as plt
 import numpy as np
-
-import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.datasets import imdb
@@ -42,22 +41,102 @@ partial_x_train = x_train[10000:]
 y_val = y_train[:10000]
 partial_y_train = y_train[10000:]
 
-# Defining the model
-model = keras.Sequential(
+#
+# Models
+#
+#
+
+
+def fit_and_evaluate(model):
+
+    history = model.fit(
+        partial_x_train,
+        partial_y_train,
+        epochs=20,
+        batch_size=512,
+        validation_data=(x_val, y_val),
+    )
+
+    results = model.evaluate(x_test, y_test)
+    print(f"Test loss: {results[0]:.4f}, accuracy: {results[1]:.4f}")
+
+    return history
+
+
+def plot_histories(*args):
+
+    print(args)
+    colors = ["b", "r", "g", "k", "y"]
+
+    for i, history in enumerate(args):
+
+        plt.plot(
+            history.epoch,
+            history.history["loss"],
+            f"{colors[i]}o",
+            label=f"Model {i} training",
+        )
+        plt.plot(
+            history.epoch,
+            history.history["val_loss"],
+            f"{colors[i]}",
+            label=f"Model {i} validation",
+        )
+
+    plt.title("Training vs validation loss on IMBD")
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.show()
+
+
+model_base = keras.Sequential(
     [
         layers.Dense(16, activation="relu"),
         layers.Dense(16, activation="relu"),
         layers.Dense(1, activation="sigmoid"),
     ]
 )
-model.compile(optimizer="rmsprop", loss="binary_crossentropy", metrics=["accuracy"])
-
-
-# fit the model using validation set for monitoring progress
-history = model.fit(
-    partial_x_train,
-    partial_y_train,
-    epochs=20,
-    batch_size=512,
-    validation_data=(x_val, y_val),
+model_base.compile(
+    optimizer="rmsprop", loss="binary_crossentropy", metrics=["accuracy"]
 )
+history_base = fit_and_evaluate(model_base)
+
+model1 = keras.Sequential(
+    [
+        layers.Dense(256, activation="relu"),
+        layers.Dense(256, activation="relu"),
+        layers.Dense(1, activation="sigmoid"),
+    ]
+)
+model1.compile(optimizer="rmsprop", loss="binary_crossentropy", metrics=["accuracy"])
+history1 = fit_and_evaluate(model1)
+
+
+model2 = keras.Sequential(
+    [
+        layers.Dense(16, activation="relu"),
+        layers.Dense(16, activation="relu"),
+        layers.Dense(16, activation="relu"),
+        layers.Dense(16, activation="relu"),
+        layers.Dense(1, activation="sigmoid"),
+    ]
+)
+model2.compile(optimizer="rmsprop", loss="binary_crossentropy", metrics=["accuracy"])
+history2 = fit_and_evaluate(model2)
+
+
+model3 = keras.Sequential(
+    [
+        layers.Dense(4, activation="relu"),
+        layers.Dense(4, activation="relu"),
+        layers.Dense(1, activation="sigmoid"),
+    ]
+)
+model3.compile(optimizer="rmsprop", loss="binary_crossentropy", metrics=["accuracy"])
+history3 = fit_and_evaluate(model3)
+
+
+plot_histories(history_base)
+
+plot_histories(history_base, history1, history2, history3)
