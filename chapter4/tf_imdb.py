@@ -102,8 +102,10 @@ model_base.compile(
 )
 history_base = fit_and_evaluate(model_base)
 
+# overfit
 model1 = keras.Sequential(
     [
+        layers.Dense(256, activation="relu"),
         layers.Dense(256, activation="relu"),
         layers.Dense(256, activation="relu"),
         layers.Dense(1, activation="sigmoid"),
@@ -113,12 +115,11 @@ model1.compile(optimizer="rmsprop", loss="binary_crossentropy", metrics=["accura
 history1 = fit_and_evaluate(model1)
 
 
+# underfit
 model2 = keras.Sequential(
     [
-        layers.Dense(16, activation="relu"),
-        layers.Dense(16, activation="relu"),
-        layers.Dense(16, activation="relu"),
-        layers.Dense(16, activation="relu"),
+        layers.Dense(4, activation="relu"),
+        layers.Dense(4, activation="relu"),
         layers.Dense(1, activation="sigmoid"),
     ]
 )
@@ -126,17 +127,6 @@ model2.compile(optimizer="rmsprop", loss="binary_crossentropy", metrics=["accura
 history2 = fit_and_evaluate(model2)
 
 
-model3 = keras.Sequential(
-    [
-        layers.Dense(4, activation="relu"),
-        layers.Dense(4, activation="relu"),
-        layers.Dense(1, activation="sigmoid"),
-    ]
-)
-model3.compile(optimizer="rmsprop", loss="binary_crossentropy", metrics=["accuracy"])
-history3 = fit_and_evaluate(model3)
-
-
 plot_histories(history_base)
 
-plot_histories(history_base, history1, history2, history3)
+plot_histories(history_base, history1, history2)
