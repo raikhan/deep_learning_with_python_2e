@@ -5,6 +5,8 @@ from torch import nn
 from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision.transforms import Lambda
 
+import matplotlib.pyplot as plt
+
 
 class IMDBDataset(Dataset):
     def __init__(self, dataset):
@@ -69,22 +71,19 @@ def train(dataloader, model, loss_fn, optimizer):
 
         # Compute prediction error
         pred = model(X)
-        loss = loss_fn(pred, y)
+
+        # NOTE adding dummy dimension to y to match X shape
+        loss = loss_fn(pred, y.unsqueeze(dim=1))
 
         # Backpropagation
         optimizer.zero_grad()  # zero-out gradients (Something Keras does automatically)
         loss.backward()  # compute gradients
         optimizer.step()  # update weights
 
-        # print the loss every 100 batches
-        if batch % 100 == 0:
-            loss, current = loss.item(), batch * len(X)
-            print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
-
-def test(dataloader, model, loss_fn):
+def evaluate(dataloader, model, loss_fn):
     """
-    Compute the predictions of the model
+    Compute the predictions of the model on the suplied dataset
     """
 
     size = len(dataloader.dataset)
@@ -93,20 +92,23 @@ def test(dataloader, model, loss_fn):
     # set the model to evaluation mode
     model.eval()
 
-    test_loss, correct = 0, 0
+    test_loss, accuracy = 0, 0
     with torch.no_grad():  # switching off autograd for evaluation
         for X, y in dataloader:
 
-            pred = model(X)
-
             # NOTE adding dummy dimension to y to match X shape
-            test_loss += loss_fn(pred, y.unsqueeze(dim=1)).item()
-            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+            y_reshaped = y.unsqueeze(dim=1)
+
+            pred_logits = model(X)
+            pred_proba = nn.Sigmoid()(pred_logits)
+            pred = pred_proba > 0.5
+
+            test_loss += loss_fn(pred_logits, y_reshaped).item()
+            accuracy += (pred == y_reshaped).type(torch.float).sum().item()
     test_loss /= num_batches
-    correct /= size
-    print(
-        f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n"
-    )
+    accuracy /= size
+
+    return accuracy, test_loss
 
 
 torch.manual_seed(42)
@@ -129,7 +131,62 @@ dl_test = DataLoader(ds_test, batch_size=64, shuffle=False)
 model = IMDBNet()
 loss_fn = nn.functional.binary_cross_entropy_with_logits
 # Using the same optimization algo as in Chapter 2
-optimizer = torch.optim.RMSprop(model.parameters(), lr=1e-3)
+optimizer = torch.optim.RMSprop(model.parameters(), lr=1e-4)
 
 
-test(dl_train, model, loss_fn)
+acc, loss = evaluate(dl_test, model, loss_fn)
+print(f"Pre-training -> Accuracy: {acc:.4f}, Loss: {loss:.4f}")
+
+#
+# Model training
+#
+val_loss = []
+train_loss = []
+val_acc = []
+train_acc = []
+epochs = list(range(20))
+
+for epoch in epochs:
+    train(dl_train, model, loss_fn, optimizer)
+
+    epoch_val_acc, epoch_val_loss = evaluate(dl_valid, model, loss_fn)
+    epoch_train_acc, epoch_train_loss = evaluate(dl_train, model, loss_fn)
+
+    print(
+        f"Epoch {epoch} -> Train loss: {epoch_train_loss:.4f}, "
+        f"Validation loss: {epoch_val_loss:.4f}, "
+        f"Validation accuracy: {epoch_val_acc:.4f}"
+    )
+
+    val_loss.append(epoch_val_loss)
+    train_loss.append(epoch_train_loss)
+    val_acc.append(epoch_val_acc)
+    train_acc.append(epoch_train_acc)
+
+#
+# Final evaluation on test set
+#
+acc, loss = evaluate(dl_test, model, loss_fn)
+print(f"After training -> Test Accuracy: {acc:.4f}, Test Loss: {loss:.4f}")
+
+#
+# Make loss plot
+#
+plt.plot(
+    epochs,
+    train_loss,
+    f"ro",
+    label=f"Training",
+)
+plt.plot(
+    epochs,
+    val_loss,
+    f"b-",
+    label=f"Validation",
+)
+
+plt.title("Training vs validation loss on IMBD")
+plt.xlabel("Epochs")
+plt.ylabel("Binary Cross-entropy loss")
+plt.legend()
+plt.show()
